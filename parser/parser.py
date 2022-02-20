@@ -2,18 +2,45 @@ import email
 import base64
 
 
+class CurveEmail:
+    def __init__(self, email_id, to):
+        self.email_id = email_id
+        self.to = to
+
+
 class Parser:
     def __init__(self, emails):
         self.emails = emails
 
-    def get_headers(self):
+    def get_headers(self, email):
+        headers = email['payload']['headers']
+        return headers
+
+    def list_headers(self):
+        headers = self.get_headers(self.emails[0])
+        response = []
+        for h in headers:
+            response.append(h['name'])
+        return response
+
+    def headers_comprehension(self):
+        headers = self.get_headers(self.emails[0])
+        response = []
+        for h in headers:
+            name = h['name']
+            value = h['value']
+            response.append({
+                name: value
+            }
+            )
+        return response
+
+
+    def parse_to(self):
         for e in self.emails:
-            headers = e['payload']['headers']
+            headers = self.get_headers(e)
             to = next(item for item in headers if item["name"] == "To")
-            print(to['value'])
-            for h in headers:
-                print(h['name'])
-                print(h['value'])
+            return to['value']
 
 
     def get_card(self):
