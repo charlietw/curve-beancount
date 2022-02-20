@@ -14,14 +14,15 @@ def setup():
         token_dir,
         creds_dir
     )
-    emails = gmail.get_all_emails(1)
+    emails = gmail.get_all_emails(5)
     parser = Parser(emails)
 
     return gmail, emails, parser
 
+
 def main():
     gmail, emails, parser = setup()
-
+    parser.parse_cost(emails[0])
 
 
 def list_headers():
