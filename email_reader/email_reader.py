@@ -53,7 +53,7 @@ class EmailReader:
 
 
     def get_emails_to(self, emails_to_retrieve):
-        query = 'to:' + self.address_to
+        query = 'to:' + self.address_to + ' subject:Curve Receipt in:inbox'
         results = self.service().users().messages().list(
             userId='me',
             maxResults=emails_to_retrieve,
@@ -69,11 +69,64 @@ class EmailReader:
         return result
 
 
-    def get_all_emails(self, emails_to_retrieve):
-        all_emails = self.get_emails_to(emails_to_retrieve)
+    def get_all_emails(self, no_of_emails_to_retrieve):
+        all_emails = self.get_emails_to(no_of_emails_to_retrieve)
         emails = []
         for a in all_emails:
             email = self.get_email(a['id'])
             emails.append(email)
         return emails
+
+
+    def get_label_id(self, label_str):
+        label_id = self.service().users().labels().get(
+            userId='me',
+            id=label_str
+        ).execute()
+        return label_id
+
+
+    def get_message_labels(self, message_id):
+        """
+        Returns all of the labels in a message
+        """
+        email = self.get_email(message_id)
+        labels = email['labelIds']
+        return labels
+
+
+    def message_has_label(self, email, label_str):
+        """
+        Returns true if the message has a given label
+        """
+        labels = self.get_message_labels(email['id'])
+        has_label = False
+        for label in labels:
+            if label == label_str:
+                has_label = True
+        return has_label
+
+
+    def move_email(self, message_id, label_from, label_to):
+        """
+        Removes one label and adds another
+        """
+        body = {
+            "addLabelIds": [
+                label_to
+            ],
+            "removeLabelIds": [
+                label_from
+            ],
+        }
+
+        self.service().users().messages().modify(
+            userId='me',
+            id=message_id,
+            body=body,
+        ).execute()
+        return True
+
+
+
 

@@ -6,14 +6,14 @@ do
         unit-test)
             poetry run pytest tests/
         ;;
-	unit-test-parser)
-	    poetry run pytest tests/test_parser.py
-        ;;
-	run-email)
-            poetry run python -m email_reader.main
+	unit-test-converter)
+	    poetry run pytest tests/test_converter.py
         ;;
 	run)
 	    poetry run python -m parser.main
+	;;
+	run-file)
+	    poetry run python -m parser.main >> $CB_BEANCOUNT_LEDGER_DIR
 	;;
 	list-email-headers)
 	    poetry run python -m parser.main -lh

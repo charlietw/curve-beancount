@@ -7,17 +7,19 @@ from decimal import Decimal
 
 
 def create_emails():
-    scopes = ['https://www.googleapis.com/auth/gmail.readonly']
-    token_dir = os.environ['TOKEN_DIR']
-    creds_dir = os.environ['CREDS_DIR']
-    email_to = os.environ['EMAIL_ADDRESS']
+    scopes = [
+        'https://www.googleapis.com/auth/gmail.readonly',
+        'https://www.googleapis.com/auth/gmail.modify']
+    token_dir = os.environ['CB_TOKEN_DIR']
+    creds_dir = os.environ['CB_CREDS_DIR']
+    email_to = os.environ['CB_EMAIL_ADDRESS']
     service = EmailReader(
         scopes,
         email_to,
         token_dir,
         creds_dir
     )
-    emails = service.get_all_emails(5)
+    emails = service.get_all_emails(2)
     return emails
 
 def create_parser():
@@ -76,7 +78,7 @@ def test_curve_emails():
 def test_add_curve_emails():
     parser = create_parser()
     parser.add_curve_emails()
-    expected = 5
+    expected = 2
     actual = len(parser.curve_emails)
     assert expected == actual
 
@@ -150,6 +152,19 @@ def test_parse_cost_no_matches_raises_error():
     pattern = "for £"
     with pytest.raises(ValueError):
         parser.parse_subject(email_subject, pattern)
+
+
+def test_convert_beancount():
+    parser = create_parser()
+    parser.add_curve_emails()
+    email = parser.curve_emails[0]
+    parser.convert_beancount(email)
+
+def test_convert_beancount_full():
+    parser = create_parser()
+    parser.add_curve_emails()
+    parser.full_beancount_output()
+
 
 
 

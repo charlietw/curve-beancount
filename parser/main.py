@@ -4,17 +4,19 @@ import os
 import argparse
 
 def setup():
-    scopes = ['https://www.googleapis.com/auth/gmail.readonly']
-    token_dir = os.environ['TOKEN_DIR']
-    creds_dir = os.environ['CREDS_DIR']
-    email_to = os.environ['EMAIL_ADDRESS']
+    scopes = [
+        'https://www.googleapis.com/auth/gmail.readonly',
+        'https://www.googleapis.com/auth/gmail.modify']
+    token_dir = os.environ['CB_TOKEN_DIR']
+    creds_dir = os.environ['CB_CREDS_DIR']
+    email_to = os.environ['CB_EMAIL_ADDRESS']
     gmail = EmailReader(
         scopes,
         email_to,
         token_dir,
         creds_dir
     )
-    emails = gmail.get_all_emails(5)
+    emails = gmail.get_all_emails(10)
     parser = Parser(emails)
 
     return gmail, emails, parser
@@ -22,7 +24,12 @@ def setup():
 
 def main():
     gmail, emails, parser = setup()
-    parser.parse_cost(emails[0])
+    parser.add_curve_emails()
+    full_output = parser.full_beancount_output()
+    for e in emails:
+        gmail.move_email(e['id'], "INBOX", os.environ['CB_GMAIL_LABEL'])
+    print(full_output)
+
 
 
 def list_headers():

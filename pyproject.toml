@@ -11,6 +11,7 @@ google-auth-httplib2 = "^0.1.0"
 google-auth-oauthlib = "^0.4.6"
 pytest = "^7.0.1"
 flake8 = "^4.0.1"
+coverage = "^6.3.2"
 
 [tool.poetry.dev-dependencies]
 

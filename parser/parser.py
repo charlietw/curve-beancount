@@ -3,16 +3,20 @@ import base64
 from datetime import datetime
 import re
 from decimal import Decimal
+import os
 
 
 class CurveEmail:
-    def __init__(self, email_id, _datetime):
+    def __init__(self, email_id, _datetime, cost, payee):
         self.email_id = email_id
         self.datetime = _datetime
+        self.cost = cost
+        self.payee = payee
+
 
 
 class Parser:
-    def __init__(self, emails: list, curve_emails: list[CurveEmail] = []):
+    def __init__(self, emails: list, curve_emails = []):
         self.emails = emails
         self.curve_emails = curve_emails
 
@@ -76,10 +80,14 @@ class Parser:
         for e in self.emails:
             headers = self.headers_comprehension(e)
             message_id = headers['Message-ID']
-            _datetime = headers['Received']
+            _datetime = self.parse_datetime(e)
+            cost = self.parse_cost(headers['Subject'])
+            payee = self.parse_payee(headers['Subject'])
             curve_email = CurveEmail(
                 message_id,
-                _datetime
+                _datetime,
+                cost,
+                payee
             )
             self.curve_emails.append(curve_email)
 
@@ -89,11 +97,39 @@ class Parser:
             to = next(item for item in headers if item["name"] == "To")
             return to['value']
 
+    def convert_beancount(self, curve_email):
+        txn_date = datetime.strftime(curve_email.datetime, "%Y-%m-%d")
+        output_string = ""
+        output_string += txn_date
+        output_string += " ! "
+        output_string += '"' + curve_email.payee + '"'
+        output_string += "\n"
+        output_string += (" " * 2)
+        output_string += os.environ['CB_BEANCOUNT_ACCOUNT']
+        output_string += " -" + str(curve_email.cost) + " GBP"
+        output_string += "\n"
+        output_string += (" " * 2)
+        output_string += os.environ['CB_BEANCOUNT_EXPENSE_ACCOUNT']
+        output_string += ("\n" * 2)
+        return output_string
+
+    def full_beancount_output(self):
+        curve_emails = self.curve_emails
+        # oldest first
+        curve_emails.sort(
+            key=lambda c: c.datetime,
+        )
+        output_string = ""
+        for c in curve_emails:
+            output_string += self.convert_beancount(c)
+        return output_string
+
+
     def get_card(self):
         """
         Searches through the body of the email to find the account
         """
-
+        # TODO - add account parsing
         content = email.message_from_bytes(base64.urlsafe_b64decode(self.emails[0]['payload']['body']['data']))
         msg = email.message.EmailMessage()
         msg.set_content(content)
