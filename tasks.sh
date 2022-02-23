@@ -3,7 +3,7 @@ set -e
 for command in "$@"
 do
     case "${command}" in
-        unit-test-all)
+        unit-test)
             poetry run pytest tests/
         ;;
 	unit-test-parser)

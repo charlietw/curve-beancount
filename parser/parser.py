@@ -44,22 +44,33 @@ class Parser:
         else:
             return email_datetime
 
-
-    def parse_cost(self, _email, cost_field = None):
-        if cost_field is None:
-            cost_field = self.headers_comprehension(_email)['Subject']
-        print(cost_field)
-        pattern = "for £"
+    def parse_subject(self, email_subject, pattern):
         # check that there is only one match
-        if len(re.findall(pattern, cost_field)) > 1:
-            raise ValueError('Multiple matches in the cost field')
-        elif len(re.findall(pattern, cost_field)) == 0:
+        if len(re.findall(pattern, email_subject)) > 1:
+            raise ValueError('Multiple matches in the field')
+        elif len(re.findall(pattern, email_subject)) == 0:
             raise ValueError('No matches in the cost field')
         else:
-            cost_location = re.search(pattern, cost_field).span()[1]
-            cost = Decimal(cost_field[cost_location:])
-            return cost
+            field_location = re.search(pattern, email_subject).span()[1]
+            field = email_subject[field_location:]
+            return field
 
+    def parse_cost(self, email_subject):
+        return Decimal(self.parse_subject(email_subject, "for £"))
+
+    def parse_payee(self, email_subject):
+        # returns everything after "purchase at"
+        full_subject = self.parse_subject(email_subject, "Purchase at ")
+        # gets an iter of every match of "on"
+        field_iter = re.finditer(" on ", full_subject)
+        matches = []
+        for f in field_iter:
+            matches.append(f)
+        # finds the last match
+        length = (len(matches) - 1)
+        field_location = matches[length]
+        char_location = field_location.span()[0]
+        return full_subject[:char_location]
 
     def add_curve_emails(self):
         for e in self.emails:
@@ -77,7 +88,6 @@ class Parser:
             headers = self.get_headers(e)
             to = next(item for item in headers if item["name"] == "To")
             return to['value']
-
 
     def get_card(self):
         """

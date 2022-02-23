@@ -20,7 +20,6 @@ def create_emails():
     emails = service.get_all_emails(5)
     return emails
 
-
 def create_parser():
     emails = create_emails()
     return Parser(emails)
@@ -98,28 +97,59 @@ def test_parse_datetime_wrong_format():
         parser.parse_datetime(email, "wrong_format")
 
 
+def test_parse_subject():
+    parser = create_parser()
+    email = parser.emails[0]
+    email_subject = parser.headers_comprehension(email)['Subject']
+    pattern = "for £"
+    parsed_response = parser.parse_subject(email_subject, pattern)
+    expected = True
+    actual = isinstance(parsed_response, str)
+    assert expected == actual
+
 
 def test_parse_cost():
     parser = create_parser()
     email = parser.emails[0]
-    parsed_response = parser.parse_cost(email)
+    email_subject = parser.headers_comprehension(email)['Subject']
+    parsed_response = parser.parse_cost(email_subject)
     expected = True
     actual = isinstance(parsed_response, Decimal)
     assert expected == actual
 
 
+def test_parse_payee():
+    parser = create_parser()
+    email_subject = "Curve Receipt: Purchase at Some Test Place on date for price"
+    parsed_response = parser.parse_payee(email_subject)
+    expected = "Some Test Place"
+    actual = parsed_response
+    assert expected == actual
+
+
+def test_parse_payee_multiple_matches():
+    parser = create_parser()
+    email_subject = "Curve Receipt: Purchase at Restaurant on Place on Sea on date for price"
+    parsed_response = parser.parse_payee(email_subject)
+    expected = "Restaurant on Place on Sea"
+    actual = parsed_response
+    assert expected == actual
+
+
 def test_parse_cost_multiple_matches_raises_error():
     parser = create_parser()
-    email = parser.emails[0]
+    email_subject = "for £ for £"
+    pattern = "for £"
     with pytest.raises(ValueError):
-        parser.parse_cost(email, "for £ for £")
+        parser.parse_subject(email_subject, pattern)
 
 
 def test_parse_cost_no_matches_raises_error():
     parser = create_parser()
-    email = parser.emails[0]
+    email_subject = "test string"
+    pattern = "for £"
     with pytest.raises(ValueError):
-        parser.parse_cost(email, "test string")
+        parser.parse_subject(email_subject, pattern)
 
 
 
