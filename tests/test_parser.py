@@ -12,7 +12,7 @@ def create_emails():
         'https://www.googleapis.com/auth/gmail.modify']
     token_dir = os.environ['CB_TOKEN_DIR']
     creds_dir = os.environ['CB_CREDS_DIR']
-    email_to = os.environ['CB_EMAIL_ADDRESS']
+    email_to = os.environ['CB_TEST_EMAIL_ADDRESS']
     service = EmailReader(
         scopes,
         email_to,
@@ -63,8 +63,8 @@ def test_headers_comprehension_value():
     parser = create_parser()
     email = parser.emails[0]
     headers = parser.headers_comprehension(email)
-    expected = os.environ['EMAIL_ADDRESS']
-    actual = headers['Delivered-To']
+    expected = os.environ['CB_TEST_EMAIL_ADDRESS']
+    actual = headers['To']
     assert expected == actual
 
 

@@ -27,6 +27,8 @@ you are running it on, all of which are prefixed by ```CB_```
 
 ```CB_EMAIL_ADDRESS``` = the email address your Curve Receipts are being sent to
 
+```CB_TEST_EMAIL_ADDRESS``` = optional, but if you want to run the unit tests locally then you can run the tests against a different email address to have more control over what you are testing
+
 ```CB_BEANCOUNT_ACCOUNT``` = the account you want to attribute your beancount transactions to (e.g. the Debit Card)
 
 ```CB_BEANCOUNT_EXPENSE_ACCOUNT``` = the Expense account you want your beancount transactions to be posted to (e.g. a "to be categorised" account) 

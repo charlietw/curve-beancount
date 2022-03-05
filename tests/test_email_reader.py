@@ -8,7 +8,7 @@ def create_email_reader():
         'https://www.googleapis.com/auth/gmail.modify']
     token_dir = os.environ['CB_TOKEN_DIR']
     creds_dir = os.environ['CB_CREDS_DIR']
-    email_to = os.environ['CB_EMAIL_ADDRESS']
+    email_to = os.environ['CB_TEST_EMAIL_ADDRESS']
     service = EmailReader(
         scopes,
         email_to,
@@ -35,30 +35,45 @@ def test_email_service():
     assert expected == actual
 
 
+def test_email_send():
+    pass
+    #TODO: add functions to send then delete test emails
+
+
 def test_email_retrieve():
     gmail = create_email_reader()
     messages = gmail.get_emails_to(2)
-    expected = 2
-    actual = len(messages)
-    assert expected == actual
+    if messages:
+        expected = 2
+        actual = len(messages)
+        assert expected == actual
 
 
 def test_get_email_raw():
     gmail = create_email_reader()
     messages = gmail.get_emails_to(1)
-    for m in messages:
-        gmail.get_email(m['id'])
+    if messages:
+        for m in messages:
+            gmail.get_email(m['id'])
     expected = True
     actual = isinstance(gmail, EmailReader)
+    assert expected == actual
+
+
+def test_get_email_no_emails():
+    gmail = create_email_reader()
+    expected = False
+    actual = gmail.get_emails_to(1, 'testing_no_results')
     assert expected == actual
 
 
 def test_get_all_emails():
     gmail = create_email_reader()
     messages = gmail.get_all_emails(2)
-    expected = 2
-    actual = len(messages)
-    assert expected == actual
+    if messages:
+        expected = 2
+        actual = len(messages)
+        assert expected == actual
 
 
 def test_get_inbox_label_id():
@@ -81,47 +96,53 @@ def test_get_filed_label_id():
 
 def test_get_message_labels():
     gmail = create_email_reader()
-    email = gmail.get_all_emails(1)[0]
-    expected_label = "INBOX"
-    labels = gmail.get_message_labels(email['id'])
-    expected = True
-    actual = False
-    for label in labels:
-        if label == expected_label:
-            actual = True
-    assert expected == actual
+    email = gmail.get_emails_to(1)
+    if email:
+        email = email[0]
+        expected_label = "INBOX"
+        labels = gmail.get_message_labels(email['id'])
+        expected = True
+        actual = False
+        for label in labels:
+            if label == expected_label:
+                actual = True
+        assert expected == actual
 
 
 def test_has_label():
     gmail = create_email_reader()
-    email = gmail.get_all_emails(1)[0]
-    expected_label = "INBOX"
-    expected = True
-    actual = gmail.message_has_label(email, expected_label)
-    assert expected == actual
+    email = gmail.get_emails_to(1)
+    if email:
+        expected_label = "INBOX"
+        expected = True
+        actual = gmail.message_has_label(email[0], expected_label)
+        assert expected == actual
 
 
 def test_has_label_false():
     gmail = create_email_reader()
-    email = gmail.get_all_emails(1)[0]
-    expected_label = "fake_label"
-    expected = False
-    actual = gmail.message_has_label(email, expected_label)
-    assert expected == actual
+    email = gmail.get_emails_to(1)
+    if email:
+        expected_label = "fake_label"
+        expected = False
+        actual = gmail.message_has_label(email[0], expected_label)
+        assert expected == actual
 
 
 def test_move_email():
     gmail = create_email_reader()
-    email = gmail.get_all_emails(1)[0]
-    email_id = email['id']
-    label_from = "INBOX"
-    label_to = os.environ['CB_GMAIL_LABEL']
-    gmail.move_email(email_id, label_from, label_to)
-    assert gmail.message_has_label(email, label_from) == False
-    assert gmail.message_has_label(email, label_to) == True
-    gmail.move_email(email_id, label_to, label_from)
-    assert gmail.message_has_label(email, label_from) == True
-    assert gmail.message_has_label(email, label_to) == False
+    email = gmail.get_emails_to(1)
+    if email:
+        email = email[0]
+        email_id = email['id']
+        label_from = "INBOX"
+        label_to = os.environ['CB_GMAIL_LABEL']
+        gmail.move_email(email_id, label_from, label_to)
+        assert gmail.message_has_label(email, label_from) == False
+        assert gmail.message_has_label(email, label_to) == True
+        gmail.move_email(email_id, label_to, label_from)
+        assert gmail.message_has_label(email, label_from) == True
+        assert gmail.message_has_label(email, label_to) == False
 
 
 

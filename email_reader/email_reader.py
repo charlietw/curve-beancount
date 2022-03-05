@@ -52,17 +52,29 @@ class EmailReader:
             print(f'An error occurred: {error}')
 
 
-    def get_emails_to(self, emails_to_retrieve):
-        query = 'to:' + self.address_to + ' subject:Curve Receipt in:inbox'
+    def get_emails_to(self, emails_to_retrieve, pattern=None):
+        """
+        Takes in emails_to_retrieve, an int, and optionally a pattern,
+        and returns a list of email IDs which match
+        """
+        if not pattern:
+            pattern = ' subject:Curve Receipt in:inbox'
+        query = 'to:' + self.address_to + pattern
         results = self.service().users().messages().list(
             userId='me',
             maxResults=emails_to_retrieve,
             q=query
         ).execute()
-        return results['messages']
+        if 'messages' in results:
+            return results['messages']
+        return False
+
 
 
     def get_email(self, message_id):
+        """
+        Takes in a message ID and returns the message object
+        """
         result = self.service().users().messages().get(
             userId='me',
             id=message_id).execute()
@@ -70,12 +82,17 @@ class EmailReader:
 
 
     def get_all_emails(self, no_of_emails_to_retrieve):
+        """
+        Returns all of the message objects
+        """
         all_emails = self.get_emails_to(no_of_emails_to_retrieve)
         emails = []
-        for a in all_emails:
-            email = self.get_email(a['id'])
-            emails.append(email)
-        return emails
+        if all_emails:
+            for a in all_emails:
+                email = self.get_email(a['id'])
+                emails.append(email)
+            return emails
+        return False
 
 
     def get_label_id(self, label_str):

@@ -24,11 +24,12 @@ def setup():
 
 def main():
     gmail, emails, parser = setup()
-    parser.add_curve_emails()
-    full_output = parser.full_beancount_output()
-    for e in emails:
-        gmail.move_email(e['id'], "INBOX", os.environ['CB_GMAIL_LABEL'])
-    print(full_output)
+    if emails:
+        parser.add_curve_emails()
+        full_output = parser.full_beancount_output()
+        for e in emails:
+            gmail.move_email(e['id'], "INBOX", os.environ['CB_GMAIL_LABEL'])
+        print(full_output)
 
 
 

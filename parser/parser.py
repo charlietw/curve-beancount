@@ -21,6 +21,7 @@ class Parser:
         self.curve_emails = curve_emails
 
     def get_headers(self, _email):
+        print(_email)
         headers = _email['payload']['headers']
         return headers
 
