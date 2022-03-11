@@ -37,7 +37,7 @@ class EmailReader:
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(
                     self.creds_dir, self.scopes)
-                creds = flow.run_local_server(port=0)
+                creds = flow.run_console()
             # Save the credentials for the next run
             with open(self.token_dir, 'w') as token:
                 token.write(creds.to_json())

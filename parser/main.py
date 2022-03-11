@@ -16,7 +16,7 @@ def setup():
         token_dir,
         creds_dir
     )
-    emails = gmail.get_all_emails(10)
+    emails = gmail.get_all_emails(1000)
     parser = Parser(emails)
 
     return gmail, emails, parser
