@@ -104,6 +104,7 @@ class Parser:
         output_string += txn_date
         output_string += " ! "
         output_string += '"' + curve_email.payee + '"'
+        output_string += ' ""'
         output_string += "\n"
         output_string += (" " * 2)
         output_string += os.environ['CB_BEANCOUNT_ACCOUNT']
