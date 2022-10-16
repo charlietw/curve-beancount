@@ -2,3 +2,6 @@
 *.json
 .idea/
 *.swp
+
+# Categories file
+categories.json

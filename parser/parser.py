@@ -4,7 +4,7 @@ from datetime import datetime
 import re
 from decimal import Decimal
 import os
-
+import json
 
 class CurveEmail:
     def __init__(self, email_id, _datetime, cost, payee):
@@ -16,9 +16,10 @@ class CurveEmail:
 
 
 class Parser:
-    def __init__(self, emails: list, categories: dict, curve_emails = []):
+    def __init__(self, emails: list, categories_file: str, curve_emails = []):
         self.emails = emails
-        self.categories = categories
+        with open(categories_file, 'r') as f:
+            self.categories = json.loads(f.read())
         self.curve_emails = curve_emails
 
     def get_headers(self, _email):
@@ -106,6 +107,7 @@ class Parser:
         otherwise return the default
         """
         category = self.categories.get(curve_email.payee)
+        print(category)
         if not category:
             return os.environ['CB_BEANCOUNT_EXPENSE_ACCOUNT']
         return category
@@ -131,11 +133,11 @@ class Parser:
     def full_beancount_output(self):
         curve_emails = self.curve_emails
         # oldest first
-        curve_emails.sort(
+        emails_sorted = sorted(curve_emails,
             key=lambda c: c.datetime,
         )
         output_string = ""
-        for c in curve_emails:
+        for c in emails_sorted:
             output_string += self.convert_beancount(c)
         return output_string
 

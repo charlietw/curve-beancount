@@ -6,7 +6,8 @@ import pytest
 from decimal import Decimal
 
 
-def create_emails():
+@pytest.fixture
+def parser():
     scopes = [
         'https://www.googleapis.com/auth/gmail.readonly',
         'https://www.googleapis.com/auth/gmail.modify']
@@ -20,41 +21,30 @@ def create_emails():
         creds_dir
     )
     emails = service.get_all_emails(3)
-    return emails
-
-def create_parser():
-    emails = create_emails()
-    categories = {
-        "TEST VENDOR": "Expenses:Something:TestVendor",
-    }
-    return Parser(emails, categories)
+    return Parser(emails, 'test_categories.json')
 
 
-def test_parser_creation():
-    parser = create_parser()
+def test_parser_creation(parser):
     expected = True
     actual = isinstance(parser, Parser)
     assert expected == actual
 
 
-def test_list_headers():
-    parser = create_parser()
+def test_list_headers(parser):
     headers = parser.list_headers()
     expected = True
     actual = isinstance(headers, list)
     assert expected == actual
 
 
-def test_list_headers_format():
-    parser = create_parser()
+def test_list_headers_format(parser):
     first_header = parser.list_headers()[0]
     expected = True
     actual = isinstance(first_header, str)
     assert expected == actual
 
 
-def test_headers_comprehension_format():
-    parser = create_parser()
+def test_headers_comprehension_format(parser):
     email = parser.emails[0]
     headers = parser.headers_comprehension(email)
     expected = True
@@ -62,8 +52,7 @@ def test_headers_comprehension_format():
     assert expected == actual
 
 
-def test_headers_comprehension_value():
-    parser = create_parser()
+def test_headers_comprehension_value(parser):
     email = parser.emails[0]
     headers = parser.headers_comprehension(email)
     expected = os.environ['CB_TEST_EMAIL_ADDRESS']
@@ -71,23 +60,21 @@ def test_headers_comprehension_value():
     assert expected == actual
 
 
-def test_curve_emails():
-    parser = create_parser()
+def test_curve_emails(parser):
     expected = 0
     actual = len(parser.curve_emails)
     assert expected == actual
 
 
-def test_add_curve_emails():
-    parser = create_parser()
+def test_add_curve_emails(parser):
     parser.add_curve_emails()
     expected = 3
     actual = len(parser.curve_emails)
     assert expected == actual
 
 
-def test_parse_datetime():
-    parser = create_parser()
+def test_parse_datetime(parser):
+
     email = parser.emails[0]
     parsed_response = parser.parse_datetime(email)
     expected = True
@@ -95,15 +82,13 @@ def test_parse_datetime():
     assert expected == actual
 
 
-def test_parse_datetime_wrong_format():
-    parser = create_parser()
+def test_parse_datetime_wrong_format(parser):
     email = parser.emails[0]
     with pytest.raises(ValueError):
         parser.parse_datetime(email, "wrong_format")
 
 
-def test_parse_subject():
-    parser = create_parser()
+def test_parse_subject(parser):
     email = parser.emails[0]
     email_subject = parser.headers_comprehension(email)['Subject']
     pattern = "for £"
@@ -113,8 +98,7 @@ def test_parse_subject():
     assert expected == actual
 
 
-def test_parse_cost():
-    parser = create_parser()
+def test_parse_cost(parser):
     email = parser.emails[0]
     email_subject = parser.headers_comprehension(email)['Subject']
     parsed_response = parser.parse_cost(email_subject)
@@ -123,8 +107,7 @@ def test_parse_cost():
     assert expected == actual
 
 
-def test_parse_payee():
-    parser = create_parser()
+def test_parse_payee(parser):
     email_subject = "Curve Receipt: Purchase at Some Test Place on date for price"
     parsed_response = parser.parse_payee(email_subject)
     expected = "Some Test Place"
@@ -132,8 +115,7 @@ def test_parse_payee():
     assert expected == actual
 
 
-def test_parse_payee_multiple_matches():
-    parser = create_parser()
+def test_parse_payee_multiple_matches(parser):
     email_subject = "Curve Receipt: Purchase at Restaurant on Place on Sea on date for price"
     parsed_response = parser.parse_payee(email_subject)
     expected = "Restaurant on Place on Sea"
@@ -141,24 +123,21 @@ def test_parse_payee_multiple_matches():
     assert expected == actual
 
 
-def test_parse_cost_multiple_matches_raises_error():
-    parser = create_parser()
+def test_parse_cost_multiple_matches_raises_error(parser):
     email_subject = "for £ for £"
     pattern = "for £"
     with pytest.raises(ValueError):
         parser.parse_subject(email_subject, pattern)
 
 
-def test_parse_cost_no_matches_raises_error():
-    parser = create_parser()
+def test_parse_cost_no_matches_raises_error(parser):
     email_subject = "test string"
     pattern = "for £"
     with pytest.raises(ValueError):
         parser.parse_subject(email_subject, pattern)
 
 
-def test_convert_beancount():
-    parser = create_parser()
+def test_convert_beancount(parser):
     parser.add_curve_emails()
     email = parser.curve_emails[1]
     txn_date = datetime.datetime.strftime(email.datetime, "%Y-%m-%d")
@@ -179,18 +158,16 @@ def test_convert_beancount():
     assert output_string == actual
 
 
-def test_convert_beancount_full():
-    parser = create_parser()
+def test_convert_beancount_full(parser):
     parser.add_curve_emails()
     parser.full_beancount_output()
 
 
-def test_find_category_when_present():
+def test_find_category_when_present(parser):
     """
     Asserts that the find category function works as expected
     when the category is present
     """
-    parser = create_parser()
     parser.add_curve_emails()
     email = parser.curve_emails[2] # This email is TEST VENDOR
     expected = "Expenses:Something:TestVendor"
@@ -198,12 +175,11 @@ def test_find_category_when_present():
     assert expected == actual
 
 
-def test_find_category_when_not_present():
+def test_find_category_when_not_present(parser):
     """
     Asserts that the find category function works as expected
     when the category is not present
     """
-    parser = create_parser()
     parser.add_curve_emails()
     email = parser.curve_emails[0] # First email is TSGN
     expected = os.environ['CB_BEANCOUNT_EXPENSE_ACCOUNT']
