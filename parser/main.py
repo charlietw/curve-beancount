@@ -2,6 +2,7 @@ from email_reader.email_reader import EmailReader
 from parser.parser import Parser
 import os
 import argparse
+import logging
 
 def setup(email_to):
     scopes = [
@@ -27,8 +28,11 @@ def main(email_to):
         parser.add_curve_emails()
         full_output = parser.full_beancount_output()
         for e in emails:
+            logging.info("Processed transaction, moving email...")
             gmail.move_email(e['id'], "INBOX", os.environ['CB_GMAIL_LABEL'])
         print(full_output)
+    else:
+        logging.info("No new transactions")
 
 
 
@@ -38,6 +42,12 @@ def list_headers(email_to):
 
 
 if __name__ == '__main__':
+    handlers = [logging.FileHandler("debug.log")]
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s : %(name)s : [%(levelname)s] : %(message)s",
+        handlers=handlers,
+    )
     cli_parser = argparse.ArgumentParser()
     cli_parser.add_argument(
         '-lh',
