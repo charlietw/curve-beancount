@@ -24,7 +24,10 @@ def create_emails():
 
 def create_parser():
     emails = create_emails()
-    return Parser(emails)
+    categories = {
+        "TEST VENDOR": "Expenses:Something:TestVendor",
+    }
+    return Parser(emails, categories)
 
 
 def test_parser_creation():
@@ -157,8 +160,24 @@ def test_parse_cost_no_matches_raises_error():
 def test_convert_beancount():
     parser = create_parser()
     parser.add_curve_emails()
-    email = parser.curve_emails[0]
-    parser.convert_beancount(email)
+    email = parser.curve_emails[1]
+    txn_date = datetime.datetime.strftime(email.datetime, "%Y-%m-%d")
+    output_string = ""
+    output_string += txn_date
+    output_string += " ! "
+    output_string += '"' + "OTHER TEST VENDOR" + '"'
+    output_string += ' ""'
+    output_string += "\n"
+    output_string += (" " * 2)
+    output_string += os.environ['CB_BEANCOUNT_ACCOUNT']
+    output_string += " -" + str(email.cost) + " GBP"
+    output_string += "\n"
+    output_string += (" " * 2)
+    output_string += os.environ['CB_BEANCOUNT_EXPENSE_ACCOUNT']
+    output_string += ("\n" * 2)
+    actual = parser.convert_beancount(email)
+    assert output_string == actual
+
 
 def test_convert_beancount_full():
     parser = create_parser()
@@ -166,8 +185,27 @@ def test_convert_beancount_full():
     parser.full_beancount_output()
 
 
+def test_find_category_when_present():
+    """
+    Asserts that the find category function works as expected
+    when the category is present
+    """
+    parser = create_parser()
+    parser.add_curve_emails()
+    email = parser.curve_emails[2] # This email is TEST VENDOR
+    expected = "Expenses:Something:TestVendor"
+    actual = parser.parse_category(email)
+    assert expected == actual
 
 
-
-
-
+def test_find_category_when_not_present():
+    """
+    Asserts that the find category function works as expected
+    when the category is not present
+    """
+    parser = create_parser()
+    parser.add_curve_emails()
+    email = parser.curve_emails[0] # First email is TSGN
+    expected = os.environ['CB_BEANCOUNT_EXPENSE_ACCOUNT']
+    actual = parser.parse_category(email)
+    assert expected == actual

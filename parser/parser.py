@@ -16,8 +16,9 @@ class CurveEmail:
 
 
 class Parser:
-    def __init__(self, emails: list, curve_emails = []):
+    def __init__(self, emails: list, categories: dict, curve_emails = []):
         self.emails = emails
+        self.categories = categories
         self.curve_emails = curve_emails
 
     def get_headers(self, _email):
@@ -98,6 +99,18 @@ class Parser:
             to = next(item for item in headers if item["name"] == "To")
             return to['value']
 
+
+    def parse_category(self, curve_email):
+        """
+        If the payee is listed in the expected categories, return it,
+        otherwise return the default
+        """
+        category = self.categories.get(curve_email.payee)
+        if not category:
+            return os.environ['CB_BEANCOUNT_EXPENSE_ACCOUNT']
+        return category
+
+
     def convert_beancount(self, curve_email):
         txn_date = datetime.strftime(curve_email.datetime, "%Y-%m-%d")
         output_string = ""
@@ -111,7 +124,7 @@ class Parser:
         output_string += " -" + str(curve_email.cost) + " GBP"
         output_string += "\n"
         output_string += (" " * 2)
-        output_string += os.environ['CB_BEANCOUNT_EXPENSE_ACCOUNT']
+        output_string += self.parse_category(curve_email)
         output_string += ("\n" * 2)
         return output_string
 
