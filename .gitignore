@@ -1,6 +1,9 @@
 *.pyc
-*.json
-.idea/
+
+# sensitive creds
+token.json
+credentials.json
+
 *.swp
 
 # Categories file
