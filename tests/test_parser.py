@@ -19,7 +19,7 @@ def create_emails():
         token_dir,
         creds_dir
     )
-    emails = service.get_all_emails(2)
+    emails = service.get_all_emails(3)
     return emails
 
 def create_parser():
@@ -78,7 +78,7 @@ def test_curve_emails():
 def test_add_curve_emails():
     parser = create_parser()
     parser.add_curve_emails()
-    expected = 2
+    expected = 3
     actual = len(parser.curve_emails)
     assert expected == actual
 

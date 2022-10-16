@@ -3,13 +3,12 @@ from parser.parser import Parser
 import os
 import argparse
 
-def setup():
+def setup(email_to):
     scopes = [
         'https://www.googleapis.com/auth/gmail.readonly',
         'https://www.googleapis.com/auth/gmail.modify']
     token_dir = os.environ['CB_TOKEN_DIR']
     creds_dir = os.environ['CB_CREDS_DIR']
-    email_to = os.environ['CB_EMAIL_ADDRESS']
     gmail = EmailReader(
         scopes,
         email_to,
@@ -22,8 +21,8 @@ def setup():
     return gmail, emails, parser
 
 
-def main():
-    gmail, emails, parser = setup()
+def main(email_to):
+    gmail, emails, parser = setup(email_to)
     if emails:
         parser.add_curve_emails()
         full_output = parser.full_beancount_output()
@@ -33,8 +32,8 @@ def main():
 
 
 
-def list_headers():
-    gmail, emails, parser = setup()
+def list_headers(email_to):
+    gmail, emails, parser = setup(email_to)
     print(parser.list_headers())
 
 
@@ -46,8 +45,12 @@ if __name__ == '__main__':
         const='list_headers',
         help='list the headers to the console'
     )
+    cli_parser.add_argument(
+        '--email',
+        help='the email address to read from'
+    )
     args = cli_parser.parse_args()
     if args.lh == 'list_headers':
-         list_headers()
+         list_headers(args.email)
     else:
-         main()
+         main(args.email)
