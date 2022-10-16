@@ -5,9 +5,7 @@ import datetime
 import pytest
 from decimal import Decimal
 
-
-@pytest.fixture
-def parser():
+def get_all_emails():
     scopes = [
         'https://www.googleapis.com/auth/gmail.readonly',
         'https://www.googleapis.com/auth/gmail.modify']
@@ -20,9 +18,20 @@ def parser():
         token_dir,
         creds_dir
     )
-    emails = service.get_all_emails(3)
+    return service.get_all_emails(3)
+
+@pytest.fixture
+def parser():
+    emails = get_all_emails()
     return Parser(emails, 'test_categories.json')
 
+def test_parser_creation_no_categories():
+    """
+    Asserts that it is possible to create an instance of Parser
+    without a categories file
+    """
+    emails = get_all_emails()
+    return Parser(emails)
 
 def test_parser_creation(parser):
     expected = True

@@ -16,12 +16,7 @@ def setup(email_to):
         creds_dir
     )
     emails = gmail.get_all_emails(1000)
-    categories = {
-        "Adobesystem (PayPal)": "Expenses:RegularPayments:SoftwareSubscriptions",
-        "TSGN": "Expenses:ImmediateSpending:Transport",
-        "Audible UK": "Expenses:RegularPayments:SoftwareSubscriptions"
-    }
-    parser = Parser(emails, categories)
+    parser = Parser(emails, 'categories.json')
 
     return gmail, emails, parser
 

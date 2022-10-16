@@ -16,10 +16,14 @@ class CurveEmail:
 
 
 class Parser:
-    def __init__(self, emails: list, categories_file: str, curve_emails = []):
+    def __init__(self, emails: list, categories_file = "", curve_emails = []):
         self.emails = emails
-        with open(categories_file, 'r') as f:
-            self.categories = json.loads(f.read())
+        try:
+            with open(categories_file, 'r') as f:
+                self.categories = json.loads(f.read())
+        except FileNotFoundError:
+            print("File not found")
+            self.categories = {}
         self.curve_emails = curve_emails
 
     def get_headers(self, _email):
