@@ -13,7 +13,7 @@ do
 	    poetry run python -m parser.main
 	;;
 	run-file)
-	    poetry run python -m parser.main $CB_EMAIL_ADDRESS >> $CB_BEANCOUNT_LEDGER_DIR
+	    poetry run python -m parser.main --email $CB_EMAIL_ADDRESS >> $CB_BEANCOUNT_LEDGER_DIR
 	;;
 	list-email-headers)
 	    poetry run python -m parser.main -lh
