@@ -111,7 +111,6 @@ class Parser:
         otherwise return the default
         """
         category = self.categories.get(curve_email.payee)
-        print(category)
         if not category:
             return os.environ['CB_BEANCOUNT_EXPENSE_ACCOUNT']
         return category
