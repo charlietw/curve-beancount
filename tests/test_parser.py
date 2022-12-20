@@ -116,6 +116,28 @@ def test_parse_cost(parser):
     assert expected == actual
 
 
+def test_parse_is_refund_true(parser):
+    """
+    Test 'is_refund' method when the subject is a genuine refund
+    """
+    email_subject = "Curve Receipt: Refund from Some Test Place on date for price"
+    parsed_response = parser.is_refund(email_subject)
+    expected = True
+    actual = parsed_response
+    assert expected == actual
+
+
+def test_parse_is_refund_false(parser):
+    """
+    Test 'is_refund' method when the subject is not a refund
+    """
+    email_subject = "Curve Receipt: Purchase at Some Test Place on date for price"
+    parsed_response = parser.is_refund(email_subject)
+    expected = False
+    actual = parsed_response
+    assert expected == actual
+
+
 def test_parse_payee(parser):
     email_subject = "Curve Receipt: Purchase at Some Test Place on date for price"
     parsed_response = parser.parse_payee(email_subject)

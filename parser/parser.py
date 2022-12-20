@@ -19,7 +19,7 @@ class Parser:
     """
     Object containing methods to parse and interpret the contents of the emails
     retrieved containing transaction details.  
-    
+
     Lots of the methods contain email_subject, which could be retrieved from
     the headers_comprehension method, but is abstracted to allow for more 
     comprehensive and flexible testing
@@ -74,6 +74,20 @@ class Parser:
             field_location = re.search(pattern, email_subject).span()[1]
             field = email_subject[field_location:]
             return field
+
+
+    def is_refund(self, email_subject):
+        """
+        Checks whether or not the email is a refund, returns True if it is
+        """
+        try:
+            self.parse_subject(email_subject, "Refund from ")
+        except ValueError as e:
+            if str(e) == 'No matches in the cost field':
+                return False
+            raise
+        return True
+
 
     def parse_cost(self, email_subject):
         return Decimal(self.parse_subject(email_subject, "for £"))
