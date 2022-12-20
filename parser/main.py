@@ -4,20 +4,17 @@ import os
 import argparse
 import logging
 
+
 def setup(email_to):
     scopes = [
-        'https://www.googleapis.com/auth/gmail.readonly',
-        'https://www.googleapis.com/auth/gmail.modify']
-    token_dir = os.environ['CB_TOKEN_DIR']
-    creds_dir = os.environ['CB_CREDS_DIR']
-    gmail = EmailReader(
-        scopes,
-        email_to,
-        token_dir,
-        creds_dir
-    )
+        "https://www.googleapis.com/auth/gmail.readonly",
+        "https://www.googleapis.com/auth/gmail.modify",
+    ]
+    token_dir = os.environ["CB_TOKEN_DIR"]
+    creds_dir = os.environ["CB_CREDS_DIR"]
+    gmail = EmailReader(scopes, email_to, token_dir, creds_dir)
     emails = gmail.get_all_emails(1000)
-    parser = Parser(emails, 'categories.json')
+    parser = Parser(emails, "categories.json")
 
     return gmail, emails, parser
 
@@ -29,11 +26,10 @@ def main(email_to):
         full_output = parser.full_beancount_output()
         for e in emails:
             logging.info("Processed transaction, moving email...")
-            gmail.move_email(e['id'], "INBOX", os.environ['CB_GMAIL_LABEL'])
+            gmail.move_email(e["id"], "INBOX", os.environ["CB_GMAIL_LABEL"])
         print(full_output)
     else:
         logging.info("No new transactions")
-
 
 
 def list_headers(email_to):
@@ -41,7 +37,7 @@ def list_headers(email_to):
     print(parser.list_headers())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     handlers = [logging.FileHandler("debug.log")]
     logging.basicConfig(
         level=logging.INFO,
@@ -50,17 +46,14 @@ if __name__ == '__main__':
     )
     cli_parser = argparse.ArgumentParser()
     cli_parser.add_argument(
-        '-lh',
-        action='store_const',
-        const='list_headers',
-        help='list the headers to the console'
+        "-lh",
+        action="store_const",
+        const="list_headers",
+        help="list the headers to the console",
     )
-    cli_parser.add_argument(
-        '--email',
-        help='the email address to read from'
-    )
+    cli_parser.add_argument("--email", help="the email address to read from")
     args = cli_parser.parse_args()
-    if args.lh == 'list_headers':
-         list_headers(args.email)
+    if args.lh == "list_headers":
+        list_headers(args.email)
     else:
-         main(args.email)
+        main(args.email)

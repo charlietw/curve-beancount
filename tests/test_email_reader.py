@@ -4,24 +4,21 @@ import os
 
 def create_email_reader():
     scopes = [
-        'https://www.googleapis.com/auth/gmail.readonly',
-        'https://www.googleapis.com/auth/gmail.modify']
-    token_dir = os.environ['CB_TOKEN_DIR']
-    creds_dir = os.environ['CB_CREDS_DIR']
-    email_to = os.environ['CB_TEST_EMAIL_ADDRESS']
-    service = EmailReader(
-        scopes,
-        email_to,
-        token_dir,
-        creds_dir
-    )
+        "https://www.googleapis.com/auth/gmail.readonly",
+        "https://www.googleapis.com/auth/gmail.modify",
+    ]
+    token_dir = os.environ["CB_TOKEN_DIR"]
+    creds_dir = os.environ["CB_CREDS_DIR"]
+    email_to = os.environ["CB_TEST_EMAIL_ADDRESS"]
+    service = EmailReader(scopes, email_to, token_dir, creds_dir)
     return service
 
 
 def test_email_reader_creation():
     scopes = [
-        'https://www.googleapis.com/auth/gmail.readonly',
-        'https://www.googleapis.com/auth/gmail.modify']
+        "https://www.googleapis.com/auth/gmail.readonly",
+        "https://www.googleapis.com/auth/gmail.modify",
+    ]
     gmail = create_email_reader()
     expected = scopes
     actual = gmail.scopes
@@ -37,7 +34,7 @@ def test_email_service():
 
 def test_email_send():
     pass
-    #TODO: add functions to send then delete test emails
+    # TODO: add functions to send then delete test emails
 
 
 def test_email_retrieve():
@@ -54,7 +51,7 @@ def test_get_email_raw():
     messages = gmail.get_emails_to(1)
     if messages:
         for m in messages:
-            gmail.get_email(m['id'])
+            gmail.get_email(m["id"])
     expected = True
     actual = isinstance(gmail, EmailReader)
     assert expected == actual
@@ -63,7 +60,7 @@ def test_get_email_raw():
 def test_get_email_no_emails():
     gmail = create_email_reader()
     expected = False
-    actual = gmail.get_emails_to(1, 'testing_no_results')
+    actual = gmail.get_emails_to(1, "testing_no_results")
     assert expected == actual
 
 
@@ -81,16 +78,16 @@ def test_get_inbox_label_id():
     label_str = "INBOX"
     label = gmail.get_label_id(label_str)
     expected = label_str
-    actual = label['id']
+    actual = label["id"]
     assert expected == actual
 
 
 def test_get_filed_label_id():
     gmail = create_email_reader()
-    label_str = os.environ['CB_GMAIL_LABEL']
+    label_str = os.environ["CB_GMAIL_LABEL"]
     label = gmail.get_label_id(label_str)
     expected = label_str
-    actual = label['id']
+    actual = label["id"]
     assert expected == actual
 
 
@@ -100,7 +97,7 @@ def test_get_message_labels():
     if email:
         email = email[0]
         expected_label = "INBOX"
-        labels = gmail.get_message_labels(email['id'])
+        labels = gmail.get_message_labels(email["id"])
         expected = True
         actual = False
         for label in labels:
@@ -134,18 +131,12 @@ def test_move_email():
     email = gmail.get_emails_to(1)
     if email:
         email = email[0]
-        email_id = email['id']
+        email_id = email["id"]
         label_from = "INBOX"
-        label_to = os.environ['CB_GMAIL_LABEL']
+        label_to = os.environ["CB_GMAIL_LABEL"]
         gmail.move_email(email_id, label_from, label_to)
         assert gmail.message_has_label(email, label_from) == False
         assert gmail.message_has_label(email, label_to) == True
         gmail.move_email(email_id, label_to, label_from)
         assert gmail.message_has_label(email, label_from) == True
         assert gmail.message_has_label(email, label_to) == False
-
-
-
-
-
-

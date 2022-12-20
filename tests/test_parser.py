@@ -5,25 +5,24 @@ import datetime
 import pytest
 from decimal import Decimal
 
+
 def get_all_emails():
     scopes = [
-        'https://www.googleapis.com/auth/gmail.readonly',
-        'https://www.googleapis.com/auth/gmail.modify']
-    token_dir = os.environ['CB_TOKEN_DIR']
-    creds_dir = os.environ['CB_CREDS_DIR']
-    email_to = os.environ['CB_TEST_EMAIL_ADDRESS']
-    service = EmailReader(
-        scopes,
-        email_to,
-        token_dir,
-        creds_dir
-    )
+        "https://www.googleapis.com/auth/gmail.readonly",
+        "https://www.googleapis.com/auth/gmail.modify",
+    ]
+    token_dir = os.environ["CB_TOKEN_DIR"]
+    creds_dir = os.environ["CB_CREDS_DIR"]
+    email_to = os.environ["CB_TEST_EMAIL_ADDRESS"]
+    service = EmailReader(scopes, email_to, token_dir, creds_dir)
     return service.get_all_emails(3)
+
 
 @pytest.fixture
 def parser():
     emails = get_all_emails()
-    return Parser(emails, 'test_categories.json')
+    return Parser(emails, "test_categories.json")
+
 
 def test_parser_creation_no_categories():
     """
@@ -32,6 +31,7 @@ def test_parser_creation_no_categories():
     """
     emails = get_all_emails()
     return Parser(emails)
+
 
 def test_parser_creation(parser):
     expected = True
@@ -64,8 +64,8 @@ def test_headers_comprehension_format(parser):
 def test_headers_comprehension_value(parser):
     email = parser.emails[0]
     headers = parser.headers_comprehension(email)
-    expected = os.environ['CB_TEST_EMAIL_ADDRESS']
-    actual = headers['To']
+    expected = os.environ["CB_TEST_EMAIL_ADDRESS"]
+    actual = headers["To"]
     assert expected == actual
 
 
@@ -99,7 +99,7 @@ def test_parse_datetime_wrong_format(parser):
 
 def test_parse_subject(parser):
     email = parser.emails[0]
-    email_subject = parser.headers_comprehension(email)['Subject']
+    email_subject = parser.headers_comprehension(email)["Subject"]
     pattern = "for £"
     parsed_response = parser.parse_subject(email_subject, pattern)
     expected = True
@@ -109,7 +109,7 @@ def test_parse_subject(parser):
 
 def test_parse_cost(parser):
     email = parser.emails[0]
-    email_subject = parser.headers_comprehension(email)['Subject']
+    email_subject = parser.headers_comprehension(email)["Subject"]
     parsed_response = parser.parse_cost(email_subject)
     expected = True
     actual = isinstance(parsed_response, Decimal)
@@ -147,7 +147,9 @@ def test_parse_payee(parser):
 
 
 def test_parse_payee_multiple_matches(parser):
-    email_subject = "Curve Receipt: Purchase at Restaurant on Place on Sea on date for price"
+    email_subject = (
+        "Curve Receipt: Purchase at Restaurant on Place on Sea on date for price"
+    )
     parsed_response = parser.parse_payee(email_subject)
     expected = "Restaurant on Place on Sea"
     actual = parsed_response
@@ -178,13 +180,13 @@ def test_convert_beancount(parser):
     output_string += '"' + "OTHER TEST VENDOR" + '"'
     output_string += ' ""'
     output_string += "\n"
-    output_string += (" " * 2)
-    output_string += os.environ['CB_BEANCOUNT_ACCOUNT']
+    output_string += " " * 2
+    output_string += os.environ["CB_BEANCOUNT_ACCOUNT"]
     output_string += " -" + str(email.cost) + " GBP"
     output_string += "\n"
-    output_string += (" " * 2)
-    output_string += os.environ['CB_BEANCOUNT_EXPENSE_ACCOUNT']
-    output_string += ("\n" * 2)
+    output_string += " " * 2
+    output_string += os.environ["CB_BEANCOUNT_EXPENSE_ACCOUNT"]
+    output_string += "\n" * 2
     actual = parser.convert_beancount(email)
     assert output_string == actual
 
@@ -200,7 +202,7 @@ def test_find_category_when_present(parser):
     when the category is present
     """
     parser.add_curve_emails()
-    email = parser.curve_emails[2] # This email is TEST VENDOR
+    email = parser.curve_emails[2]  # This email is TEST VENDOR
     expected = "Expenses:Something:TestVendor"
     actual = parser.parse_category(email)
     assert expected == actual
@@ -212,7 +214,7 @@ def test_find_category_when_not_present(parser):
     when the category is not present
     """
     parser.add_curve_emails()
-    email = parser.curve_emails[0] # First email is TSGN
-    expected = os.environ['CB_BEANCOUNT_EXPENSE_ACCOUNT']
+    email = parser.curve_emails[0]  # First email is TSGN
+    expected = os.environ["CB_BEANCOUNT_EXPENSE_ACCOUNT"]
     actual = parser.parse_category(email)
     assert expected == actual
