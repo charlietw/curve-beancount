@@ -16,13 +16,21 @@ class CurveEmail:
 
 
 class Parser:
+    """
+    Object containing methods to parse and interpret the contents of the emails
+    retrieved containing transaction details.  
+    
+    Lots of the methods contain email_subject, which could be retrieved from
+    the headers_comprehension method, but is abstracted to allow for more 
+    comprehensive and flexible testing
+    """
     def __init__(self, emails: list, categories_file = "", curve_emails = []):
         self.emails = emails
         try:
             with open(categories_file, 'r') as f:
                 self.categories = json.loads(f.read())
         except FileNotFoundError:
-            print("File not found")
+            print("Categories file not found. Continuing without categories")
             self.categories = {}
         self.curve_emails = curve_emails
 
@@ -62,6 +70,7 @@ class Parser:
         elif len(re.findall(pattern, email_subject)) == 0:
             raise ValueError('No matches in the cost field')
         else:
+            # span gets tuple of start and end index of match
             field_location = re.search(pattern, email_subject).span()[1]
             field = email_subject[field_location:]
             return field
@@ -72,12 +81,14 @@ class Parser:
     def parse_payee(self, email_subject):
         # returns everything after "purchase at"
         full_subject = self.parse_subject(email_subject, "Purchase at ")
-        # gets an iter of every match of "on"
+        # gets an iter of every match of "on", then get the last,
+        # in case the word "on" is in the payee name
         field_iter = re.finditer(" on ", full_subject)
         matches = []
         for f in field_iter:
             matches.append(f)
-        # finds the last match
+        # finds the last match of "on", just before 
+        # which we know will be the payee
         length = (len(matches) - 1)
         field_location = matches[length]
         char_location = field_location.span()[0]
