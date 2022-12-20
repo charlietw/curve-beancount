@@ -15,7 +15,7 @@ def get_all_emails():
     creds_dir = os.environ["CB_CREDS_DIR"]
     email_to = os.environ["CB_TEST_EMAIL_ADDRESS"]
     service = EmailReader(scopes, email_to, token_dir, creds_dir)
-    return service.get_all_emails(3)
+    return service.get_all_emails(4)
 
 
 @pytest.fixture
@@ -77,13 +77,12 @@ def test_curve_emails(parser):
 
 def test_add_curve_emails(parser):
     parser.add_curve_emails()
-    expected = 3
+    expected = 4
     actual = len(parser.curve_emails)
     assert expected == actual
 
 
 def test_parse_datetime(parser):
-
     email = parser.emails[0]
     parsed_response = parser.parse_datetime(email)
     expected = True
@@ -108,11 +107,21 @@ def test_parse_subject(parser):
 
 
 def test_parse_cost(parser):
+    email = parser.emails[1]
+    email_subject = parser.headers_comprehension(email)["Subject"]
+    actual = parser.parse_cost(email_subject)
+    expected = Decimal('-19.10')
+    assert expected == actual
+
+
+def test_parse_cost_refund(parser):
+    """
+    Asserts that the parse cost function can get values from refunds
+    """
     email = parser.emails[0]
     email_subject = parser.headers_comprehension(email)["Subject"]
-    parsed_response = parser.parse_cost(email_subject)
-    expected = True
-    actual = isinstance(parsed_response, Decimal)
+    actual = parser.parse_cost(email_subject)
+    expected = Decimal('1')
     assert expected == actual
 
 
@@ -172,23 +181,24 @@ def test_parse_cost_no_matches_raises_error(parser):
 
 def test_convert_beancount(parser):
     parser.add_curve_emails()
-    email = parser.curve_emails[1]
-    txn_date = datetime.datetime.strftime(email.datetime, "%Y-%m-%d")
-    output_string = ""
-    output_string += txn_date
-    output_string += " ! "
-    output_string += '"' + "OTHER TEST VENDOR" + '"'
-    output_string += ' ""'
-    output_string += "\n"
-    output_string += " " * 2
-    output_string += os.environ["CB_BEANCOUNT_ACCOUNT"]
-    output_string += " -" + str(email.cost) + " GBP"
-    output_string += "\n"
-    output_string += " " * 2
-    output_string += os.environ["CB_BEANCOUNT_EXPENSE_ACCOUNT"]
-    output_string += "\n" * 2
-    actual = parser.convert_beancount(email)
-    assert output_string == actual
+    for email in parser.curve_emails:
+        print(parser.convert_beancount(email))
+        txn_date = datetime.datetime.strftime(email.datetime, "%Y-%m-%d")
+        output_string = ""
+        output_string += txn_date
+        output_string += " ! "
+        output_string += '"' + email.payee + '"'
+        output_string += ' ""'
+        output_string += "\n"
+        output_string += " " * 2
+        output_string += os.environ["CB_BEANCOUNT_ACCOUNT"]
+        output_string += " " + str(email.cost) + " GBP"
+        output_string += "\n"
+        output_string += " " * 2
+        output_string += parser.parse_category(email)
+        output_string += "\n" * 2
+        actual = parser.convert_beancount(email)
+        assert output_string == actual
 
 
 def test_convert_beancount_full(parser):
@@ -202,7 +212,7 @@ def test_find_category_when_present(parser):
     when the category is present
     """
     parser.add_curve_emails()
-    email = parser.curve_emails[2]  # This email is TEST VENDOR
+    email = parser.curve_emails[3]  # This email is TEST VENDOR
     expected = "Expenses:Something:TestVendor"
     actual = parser.parse_category(email)
     assert expected == actual
@@ -214,7 +224,7 @@ def test_find_category_when_not_present(parser):
     when the category is not present
     """
     parser.add_curve_emails()
-    email = parser.curve_emails[0]  # First email is TSGN
+    email = parser.curve_emails[1]  # Second email is TSGN
     expected = os.environ["CB_BEANCOUNT_EXPENSE_ACCOUNT"]
     actual = parser.parse_category(email)
     assert expected == actual

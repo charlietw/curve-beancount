@@ -89,11 +89,22 @@ class Parser:
         return True
 
     def parse_cost(self, email_subject):
-        return Decimal(self.parse_subject(email_subject, "for £"))
+        if self.is_refund(email_subject):
+            # This needs to be a positive number because the cost is what 
+            # is happening at the account i.e. a refund is positive
+            sign = ""
+        else:
+            sign = "-"
+        value = self.parse_subject(email_subject, "for £")
+        return Decimal(f"{sign}{value}")
 
     def parse_payee(self, email_subject):
+        if self.is_refund(email_subject):
+            pattern = "Refund from "
+        else:
+            pattern = "Purchase at "
         # returns everything after "purchase at"
-        full_subject = self.parse_subject(email_subject, "Purchase at ")
+        full_subject = self.parse_subject(email_subject, pattern)
         # gets an iter of every match of "on", then get the last,
         # in case the word "on" is in the payee name
         field_iter = re.finditer(" on ", full_subject)
@@ -113,6 +124,7 @@ class Parser:
             message_id = headers["Message-ID"]
             _datetime = self.parse_datetime(e)
             cost = self.parse_cost(headers["Subject"])
+            print(f">>>>>>>> COST HERE {cost}")
             payee = self.parse_payee(headers["Subject"])
             curve_email = CurveEmail(message_id, _datetime, cost, payee)
             self.curve_emails.append(curve_email)
@@ -143,7 +155,7 @@ class Parser:
         output_string += "\n"
         output_string += " " * 2
         output_string += os.environ["CB_BEANCOUNT_ACCOUNT"]
-        output_string += " -" + str(curve_email.cost) + " GBP"
+        output_string += " " + str(curve_email.cost) + " GBP"
         output_string += "\n"
         output_string += " " * 2
         output_string += self.parse_category(curve_email)
